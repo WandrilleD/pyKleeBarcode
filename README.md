@@ -14,6 +14,11 @@ The structure matrix describe degrees of closedness between sequence, and is com
 You need to have the scipy librairies installed. Look here for instructions : https://www.scipy.org/install.html (like them, I suggest using Anaconda).
 For the MPI script you need to have MPI enable on the machine and the python library mpi4py installed.
 
+## Test :
+
+The `testscripts/` folder contains a number of tests for the different scripts. They provide both a way to verify that your environment is compatible with the software and provide usage examples.
+
+To test all scripts at once, use `sh testScripts/all_tests.sh` (NB: the test scripts need to have write access to the current folder in order to write logs and temporary files).
 
 ## Usage 
 

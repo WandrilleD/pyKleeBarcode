@@ -24,7 +24,7 @@ python $srcDIR/pyKleeBarcode_updateStructureMatrix.py -r iVec10.tmp.csv -n iVec1
 python $srcDIR/convertStructureMat_CSV_to_bin.py -i stMat10.tmp -o stMat10.tmp.csv --bintocsv
 python $srcDIR/convertStructureMat_CSV_to_bin.py -i stMat20.tmp -o stMat20.tmp.csv --bintocsv
 
-python compareMatrices.py -i1 stMat10.tmp.csv -i2 stMat20.tmp.csv --header --sep ,
+python $SCRIPT_DIR/compareMatrices.py -i1 stMat10.tmp.csv -i2 stMat20.tmp.csv --header --sep ,
 RV=$?
 
 ## cleaning
@@ -33,6 +33,7 @@ rm iVec20.tmp.csv
 rm iVec1020.tmp.csv
 rm stMat10.tmp.csv
 rm stMat20.tmp.csv
-
+rm stMat10.tmp
+rm stMat20.tmp
 
 exit $RV
