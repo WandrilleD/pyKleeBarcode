@@ -1,12 +1,15 @@
 
-from collections import defaultdict, Counter
+from collections import defaultdict
 import numpy as np
+from scipy.sparse import csr_matrix
 import time
-from pyKleeBarcode_linearAlgebra import computeIndicatorVectors , computeSsum_sparse , computeSingleIndicatorVector_sparse , computeAndWriteStructureMatrixFromIndicatorVectors
+import warnings
+warnings.filterwarnings('ignore')
 
+from pyKleeBarcode_utils import iterFasta, writeStructureMatrix_bin, getSequenceSpecies , getModalValueIncludingSpecialRules , sequenceToBarcode
 
+from pyKleeBarcode_linearAlgebra import computeSsum_sparse , computeSingleIndicatorVector_sparse , computeStructureMatrixFromIndicatorVectors, computeAndWriteStructureMatrixFromIndicatorVectors, computeIndicatorVectors
 
-from pyKleeBarcode_utils import iterFasta, CSVmat, getSequenceSpecies , getModalValueIncludingSpecialRules , sequenceToBarcode
 
 
 
@@ -132,7 +135,7 @@ if __name__ == "__main__":
 
 		## reporting
 		OUT=open(outFile,'w')
-		CSVmat(structureMatrix,OUT,header=speciesOrder)
+		writeStructureMatrix_bin( speciesOrder , structureMatrix , outFile )
 		OUT.close()
 
 
