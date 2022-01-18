@@ -98,26 +98,31 @@ def applyOrderToStructureMatrix( structureMatrix , currentOrder , newOrder ):
             (np.array) : 2D structure matrix, reordered
     """
 
-    ## adding at the end sequences that are absent from the order 
+    ## ignoring sequences that are absent from the order 
     for i,sp in enumerate(currentOrder):
         if not sp in newOrder:
-            print("WARNING :",sp,"is absent from the tree : pushed at the end of the matrix")
-            newOrder[sp] = len(newOrder)
+            print("WARNING :",sp,"is absent from the tree : ignored in the new matrix")
+            
 
-    newMatrix = np.zeros( structureMatrix.shape )
+    newMatrix = np.zeros( (len(newOrder),len(newOrder)) )
 
     for i,sp1 in enumerate(currentOrder):
 
 
-        new1 = newOrder.get( sp1 )
+        new1 = newOrder.get( sp1 , None)
+        if new1 is None:
+            continue
 
         for j,sp2 in enumerate(currentOrder):
             
-            new2 = newOrder[ sp2 ]
+            new2 = newOrder.get( sp2 )
+            if new2 is None:
+                continue
 
             newMatrix[new1][new2] = structureMatrix[i][j]
 
     return newMatrix
+
 
 
 def CSVmat(mat,outHandle,header=None):
@@ -179,9 +184,14 @@ if __name__ == "__main__" :
     DForder = treeTraversal(tree)
 
     DForderDict = { }
+    orderL_filtered=[]
     for sp in DForder:
         if sp in matrixheader :
             DForderDict[sp]=len(DForderDict)
+            orderL_filtered.append(sp)
+        else:
+            print("Warning: {} present in tree, but absent from structure matrix. ignored.".format(sp))
+
 
     print( "The tree and the matrix have {intSize} leaves in common".format( intSize= len(DForderDict) ) )
 
@@ -193,7 +203,7 @@ if __name__ == "__main__" :
 
     ## reporting
     if not args.csv:
-        writeStructureMatrix_bin( DForder , M , outFile  )
+        writeStructureMatrix_bin( orderL_filtered , M , outFile  )
     else:
         OUT=open(outFile,'w')
         CSVmat(M,OUT,header=DForder)
