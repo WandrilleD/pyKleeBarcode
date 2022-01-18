@@ -96,11 +96,9 @@ if __name__ == "__main__" :
     outFile= args.outputFile
     
     # reading data
-    orderDict = {}
     orderL = []
     with open(ORDER_FILE,'r') as IN:
         for l in IN:
-            orderDict[ l.strip() ] = len(orderDict)
             orderL.append( l.strip() )
     print("order read")
 
@@ -112,6 +110,15 @@ if __name__ == "__main__" :
     matrixheader , M = smreading( STRMAT_FILE )
 
     print("matrix read")
+    
+    orderDict = {}
+    orderL_filtered=[]
+    for sp in orderL:
+        if sp in matrixheader :
+            orderDict[sp]=len(orderDict)
+            orderL_filtered.append(sp)
+        else:
+            print("Warning: {} present in order list but absent from structure matrix. ignored.".format(sp))
 
     
     print( "The list and the matrix have {intSize} leaves in common".format( intSize= len(orderDict) ) )
@@ -124,7 +131,7 @@ if __name__ == "__main__" :
 
     ## reporting
     if not args.csv:
-        writeStructureMatrix_bin( orderL , M , outFile  )
+        writeStructureMatrix_bin( orderL_filtered , M , outFile  )
     else:
         OUT=open(outFile,'w')
         CSVmat(M,OUT,header=orderL)
