@@ -10,7 +10,7 @@ echo "test_computeSsum.sh"
 
 if [ $RV -eq 0 ]
 then
-  echo "computeSsum ...................... OK"
+  echo "computeSsum .................................... OK"
 else
   echo "Problem in computeSsum test. Consult computeSsum.test_log.txt"
   exit $RV
@@ -23,7 +23,7 @@ echo "test_computeIndicatorVector.sh"
 
 if [ $RV -eq 0 ]
 then
-  echo "computeIndicatorVector ........... OK"
+  echo "computeIndicatorVector ......................... OK"
 else
   echo "Problem in computeIndicatorVector test. Consult computeIndicatorVector.test_log.txt"
   exit $RV
@@ -36,7 +36,7 @@ echo "test_computeStructureMatrix.sh"
 
 if [ $RV -eq 0 ]
 then
-  echo "computeStructureMatrix ........... OK"
+  echo "computeStructureMatrix ......................... OK"
 else
   echo "Problem in computeStructureMatrix test. Consult computeStructureMatrix.test_log.txt"
   exit $RV
@@ -49,7 +49,7 @@ echo "test_convertStructureMat_CSV_to_bin.sh"
 
 if [ $RV -eq 0 ]
 then
-  echo "convertStructureMat_CSV_to_bin ... OK"
+  echo "convertStructureMat_CSV_to_bin ................. OK"
 else
   echo "Problem in convertStructureMat_CSV_to_bin test. Consult convertStructureMat_CSV_to_bin.test_log.txt"
   exit $RV
@@ -60,7 +60,7 @@ RV=$?
 echo "test_pyKleeBarcode.sh"
 if [ $RV -eq 0 ]
 then
-  echo "pyKleeBarcode .................... OK"
+  echo "pyKleeBarcode .................................. OK"
 else
   echo "Problem in pyKleeBarcode test. Consult pyKleeBarcode.test_log.txt"
   exit $RV
@@ -73,7 +73,7 @@ echo "test_mergeSsum.sh"
 
 if [ $RV -eq 0 ]
 then
-  echo "mergeSsum ........................ OK"
+  echo "mergeSsum ...................................... OK"
 else
   echo "Problem in mergeSsum test. Consult mergeSsum.test_log.txt"
   exit $RV
@@ -85,7 +85,7 @@ echo "test_updateStructureMatrix.sh"
 
 if [ $RV -eq 0 ]
 then
-  echo "updateStructureMatrix ............ OK"
+  echo "updateStructureMatrix .......................... OK"
 else
   echo "Problem in updateStructureMatrix test. Consult updateStructureMatrix.test_log.txt"
   exit $RV
@@ -98,9 +98,49 @@ echo "test_heatmap_from_structureMatrix.sh"
 
 if [ $RV -eq 0 ]
 then
-  echo "heatmap_from_structureMatrix ..... OK"
+  echo "heatmap_from_structureMatrix ................... OK"
 else
   echo "Problem in heatmap_from_structureMatrix test. Consult heatmap_from_structureMatrix.test_log.txt"
+  exit $RV
+fi
+
+
+
+sh $SCRIPT_DIR/test_taxon_annotated_heatmap_from_structureMatrix.sh > taxon_annotated_heatmap_from_structureMatrix.test_log.txt 2>&1
+RV=$?
+echo "test_taxon_annotated_heatmap_from_structureMatrix.sh"
+
+if [ $RV -eq 0 ]
+then
+  echo "taxon_annotated_heatmap_from_structureMatrix ... OK"
+else
+  echo "Problem in taxon_annotated_heatmap_from_structureMatrix test. Consult taxon_annotated_heatmap_from_structureMatrix.test_log.txt"
+  exit $RV
+fi
+
+
+sh $SCRIPT_DIR/test_order_structureMatrix_with_list.sh > order_structureMatrix_with_list.test_log.txt 2>&1
+RV=$?
+echo "test_order_structureMatrix_with_list.sh"
+
+if [ $RV -eq 0 ]
+then
+  echo "order_structureMatrix_with_list ................ OK"
+else
+  echo "Problem in order_structureMatrix_with_list test. Consult order_structureMatrix_with_list.test_log.txt"
+  exit $RV
+fi
+
+
+sh $SCRIPT_DIR/test_order_structureMatrix_with_tree.sh > order_structureMatrix_with_tree.test_log.txt 2>&1
+RV=$?
+echo "test_order_structureMatrix_with_tree.sh"
+
+if [ $RV -eq 0 ]
+then
+  echo "order_structureMatrix_with_tree ................ OK"
+else
+  echo "Problem in order_structureMatrix_with_tree test. Consult order_structureMatrix_with_tree.test_log.txt"
   exit $RV
 fi
 
