@@ -33,19 +33,23 @@ def applyOrderToStructureMatrix( structureMatrix , currentOrder , newOrder ):
     ## adding at the end sequences that are absent from the order 
     for i,sp in enumerate(currentOrder):
         if not sp in newOrder:
-            print("WARNING :",sp,"is absent from the tree : pushed at the end of the matrix")
-            newOrder[sp] = len(newOrder)
+            print("WARNING :",sp,"is absent from the list : ignored in the new matrix")
+            
 
-    newMatrix = np.zeros( structureMatrix.shape )
+    newMatrix = np.zeros( (len(newOrder),len(newOrder)) )
 
     for i,sp1 in enumerate(currentOrder):
 
 
-        new1 = newOrder.get( sp1 )
+        new1 = newOrder.get( sp1 , None)
+        if new1 is None:
+            continue
 
         for j,sp2 in enumerate(currentOrder):
             
-            new2 = newOrder[ sp2 ]
+            new2 = newOrder.get( sp2 )
+            if new2 is None:
+                continue
 
             newMatrix[new1][new2] = structureMatrix[i][j]
 

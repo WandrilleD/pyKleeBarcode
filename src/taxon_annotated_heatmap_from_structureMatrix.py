@@ -452,6 +452,13 @@ if __name__ == "__main__" :
     parser.add_argument('-s','--size', type=float, default=640,
              help='height of the generated image (in pixels).')
 
+    parser.add_argument('-S','--seq2species', type=str,default='',
+             help='a file containing a correspondance between sequence ids (as they appear in the structure matrix), and species or genus name.\nOne sequence ID per line, sequence id and species name separated by a semicolumn (;).\nIf this option is omitted the sequence ids are presumed to reflect a species or genus name.')
+
+    parser.add_argument('--label-with-species', action='store_true',
+             help='label the image with the species name (given with the -S option)')
+
+
     parser.add_argument('--csv', action='store_true',
              help='specify that the structure matrix in in csv format (default expects a binary format)')
 
@@ -470,9 +477,9 @@ if __name__ == "__main__" :
     if args.csv :
         smreading = readStructureMatrix
 
-    spList , structureMatrix = smreading( STRMAT_FILE )
+    sqList , structureMatrix = smreading( STRMAT_FILE )
 
-    print( "read the structure containing",len(spList),"species." )
+    print( "read the structure matrix containing",len(sqList),"elements." )
     # reading the taxons
     phylaLineageDict , phylaNameDict , phylaRankDict = readTaxonomy( TAXON_FILE )
 
@@ -488,20 +495,39 @@ if __name__ == "__main__" :
                 exit(1)
             genusName2taxid[name] = taxid
 
+    # handling case where a file giving correspondance between seqID and species name was given
+    seq2species = {s:s for s in sqList}
+    if not args.seq2species == '':
+        try:
+            with open(args.seq2species,'r') as IN:
+                for l in IN:
+                    sl = l.strip().split(';')
+                    seq2species[sl[0]] = sl[1]
+        except :
+            print("ERROR : error while reading the sequence to species name correspondance file :",args.seq2species)
+            exit(1)
+
+    
+
+
+
 
     # creating a taxon tree from the genera that are present in the structure matrix
     representedGenus = defaultdict(list)
     unknownGenera = defaultdict(list)
-    for sp in spList:
-        genusName = species2genus(sp , sep = genusSep)
+    for sq in sqList:
+        genusName = species2genus( seq2species[sq] , sep = genusSep)
         taxid = genusName2taxid.get(genusName, None)
 
         if taxid is None:
-            unknownGenera[genusName].append( sp )
+            unknownGenera[genusName].append( sq )
         else:
-            representedGenus[ taxid ].append(sp)
+            representedGenus[ taxid ].append( sq )
     if len(unknownGenera)>0:
         print( "WARNING : the structure matrix contains unknown {} unknown genera.".format(len(unknownGenera)) )
+        print('"'+'" "'.join([x for x in unknownGenera.keys()])+'"')
+        if args.seq2species != '':
+            print("resp. associated to species:", '"'+'" "'.join([ seq2species[ x ] for x in unknownGenera.keys()])+'"' )
         print('"'+'" "'.join([x for x in unknownGenera.keys()])+'"')
         print('The associated sequences will be pushed at the bottom/right of the plot')
         #exit(1)
@@ -534,9 +560,10 @@ if __name__ == "__main__" :
     speciesOrderDict = getSpeciesOrderFromBrackets( representedGenus , phylaBrackets )
 
     #apply the order
-    structureMatrix = applyOrderToStructureMatrix( structureMatrix , spList , speciesOrderDict )
+    structureMatrix = applyOrderToStructureMatrix( structureMatrix , sqList , speciesOrderDict )
+
     for sp,i in speciesOrderDict.items():
-        spList[i]=sp
+        sqList[i]=sp
 
     print("structure matrix ordered, now plotting")
     ## in plt.subplot the figsize is in inches, and default dpi is 100
@@ -557,11 +584,13 @@ if __name__ == "__main__" :
         i+=1
 
 
+    labels = sqList
+    if args.label_with_species :
+        labels = [seq2species[s] for s in sqList]
 
 
-    labels = spList
 
-    if len(spList)>ANNOTATION_THRESHOLD:
+    if len(sqList)>ANNOTATION_THRESHOLD:
         labels = []
 
     colorMap = 'nipy_spectral' # lots of contrast, in particular close to 0
