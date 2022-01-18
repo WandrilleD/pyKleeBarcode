@@ -302,8 +302,8 @@ optional arguments:
 
 #### Representation of structure matrix
 
-* order_structureMatrix_with_tree.py : reorders the rows inside a structure matrix according to a tree in newick format
-* order_structureMatrix_with_list.py : reorders the rows inside a structure matrix according to a list (file with one id per line)
-* heatmap_from_structureMatrix.py : produces a klee diagram image from a structure matrix
-* taxon_annotated_heatmap_from_structureMatrix.py : produces a klee diagram image from a structure matrix, with taxonomic annotations from a file.
+* `order_structureMatrix_with_tree.py` : reorders the rows inside a structure matrix according to a tree in newick format
+* `order_structureMatrix_with_list.py` : reorders the rows inside a structure matrix according to a list (file with one id per line)
+* `heatmap_from_structureMatrix.py` : produces a klee diagram image from a structure matrix
+* `taxon_annotated_heatmap_from_structureMatrix.py` : produces a klee diagram image from a structure matrix, with taxonomic annotations from a file.
     see an example of annotation file in `testData/Animal.taxons.ok_and_resolved.txt`, which should work for most animal taxons following the ncbi taxonomy.
