@@ -59,6 +59,27 @@ def readCSV(fname):
 		l = IN.readline()
 	return np.array(tabs)
 
+
+def readSequenceSpeciesCorrespondenceFile( filename , sep = ',' ):
+	"""
+		Takes:
+			- filename (str) : name of a file containing correspondence between sequence ids and species (group) name
+			- sep (str) default=',' : field separator of the correspondence file
+
+		filename should contain 1 correspondence per line, in the format:
+		sequenceId,speciesName 
+
+		Returns:
+			(dict) : keys are sequenceIds, values are the corresponding species
+	"""
+	sid2sp = {}
+	with open(filename , 'r') as IN:
+		for l in IN:
+			sl = l.strip().split(sep)
+			sid2sp[ sl[0] ] = sl[1]
+	return sid2sp
+
+
 def getSequenceSpecies( fastaId , sep , index ):
 	""" 
 		Takes :

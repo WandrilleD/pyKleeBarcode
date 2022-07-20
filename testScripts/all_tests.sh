@@ -144,3 +144,17 @@ else
   exit $RV
 fi
 
+
+
+sh $SCRIPT_DIR/test_correspondenceFile_option.sh > correspondenceFile_option.test_log.txt 2>&1
+RV=$?
+echo "test_correspondenceFile_option.sh"
+
+if [ $RV -eq 0 ]
+then
+  echo "correspondenceFile_option ...................... OK"
+else
+  echo "Problem in correspondenceFile_option test. Consult correspondenceFile_option.test_log.txt"
+  exit $RV
+fi
+

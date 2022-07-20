@@ -4,7 +4,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 import time
 
-from pyKleeBarcode_utils import iterFasta, CSVmat, getSequenceSpecies , getModalValueIncludingSpecialRules , sequenceToBarcode , saveSsum
+from pyKleeBarcode_utils import iterFasta, CSVmat, getSequenceSpecies , getModalValueIncludingSpecialRules , sequenceToBarcode , saveSsum , readSequenceSpeciesCorrespondenceFile
 
 from pyKleeBarcode_linearAlgebra import computeSsum_sparse
 
@@ -66,6 +66,9 @@ if __name__ == "__main__":
 		parser.add_argument('-s','--species-field-index', type=int, default=1,
 				 help='index (starting at 0) of the species name in the fasta sequence id lines. default: 1')
 
+		parser.add_argument('-C','---correspondence-file', type=str, default="",
+			 help='name of a comma-delimited file containing correspondence between sequence and species. Overrides option -s when used.\nOne sequence ID per line, sequence id and species name separated by a semicolumn (;).')
+
 		parser.add_argument('--seed',type=int, default=None,
 				 help='random seed used when selecting a species sequences if there is more than --max-seq-per-species. By default is it created using time.')
 
@@ -79,6 +82,8 @@ if __name__ == "__main__":
 		FASTA_ID_SEPARATOR= args.field_delimitor # separator between fields in the fasta id
 		SPECIES_NAME_INDEX= args.species_field_index  # index of the species name in the fasta id (starts at 0)
 	
+		correspondence_file = args.correspondence_file
+
 		# maximum of sequence per species/group
 		MAX_SEQUENCE_PER_SPECIES = args.max_seq_per_species
 
@@ -88,11 +93,18 @@ if __name__ == "__main__":
 		if MAX_SEQUENCE_PER_SPECIES > 0:
 			print("random seed for species sequence selection :" , randomSeed)
 
+
 	
 	## master process reads the data
 	if MPI_rank == 0:	
-	
+
+
 		T = time.time()
+
+		sid2sp = {}
+		if len(correspondence_file) > 0 : ## we use the correspondence file instead of the Nth field of the fasta description line
+			sid2sp = readSequenceSpeciesCorrespondenceFile( correspondence_file , sep = ';' )
+
 
 		speciesSequences = defaultdict(list) # stores sequences, organized by species
 		seqLen = 0
@@ -100,15 +112,26 @@ if __name__ == "__main__":
 		## reading data
 		IN = open(inFile, 'r')
 		for k,s in iterFasta(IN):
-			sp = getSequenceSpecies(k, FASTA_ID_SEPARATOR , SPECIES_NAME_INDEX )
+			sp=''
+			if len(correspondence_file) > 0:
+				sid = k.partition(FASTA_ID_SEPARATOR)[0]
+
+				if not sid in sid2sp :
+					print("Error : sequence {} is absent from the correspondence file {}".format( sid , correspondence_file ))
+					exit(1)
+				sp = sid2sp[sid]
+
+			else:
+				sp = getSequenceSpecies(k, FASTA_ID_SEPARATOR , SPECIES_NAME_INDEX )
 
 			#if len ( speciesSequences[ sp ] ) == MAX_SEQUENCE_PER_SPECIES and MAX_SEQUENCE_PER_SPECIES >0 :
 			#	continue ## this species already have the maximum number of sequences
 			speciesSequences[ sp ].append( s )
+
 			if seqLen == 0:
 				seqLen = len(s)
 			elif len(s) != seqLen:
-				print( "Error : found sequence of differing length (",k,").","Please make sur the fasta file you provided contians aligned sequences only." , file = sys.stderr )
+				print( "Error : found sequence of differing length (",k,").","Please make sur the fasta file you provided contains aligned sequences only." , file = sys.stderr )
 				exit(1)
 
 		
