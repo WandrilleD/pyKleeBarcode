@@ -50,31 +50,31 @@ fi
 
 
 rm $REF
-## computeSsum
+## computeRefM
 
 ##creating reference file
-python $srcDIR/pyKleeBarcode_computeSsum_MPI.py -i $SOURCE -o test.Ssum2 -s 1
-REF=test.Ssum2
+python $srcDIR/pyKleeBarcode_computeRefMat_MPI.py -i $SOURCE -o test.RefM2 -s 1
+REF=test.RefM2
 
 ## generating structure matrix from the indicator vectors
-python $srcDIR/pyKleeBarcode_computeSsum_MPI.py -i $SOURCE -o test.Ssum -C $dataDIR/Acanthocephala.trimmed.fas.seq2species.txt
+python $srcDIR/pyKleeBarcode_computeRefMat_MPI.py -i $SOURCE -o test.RefM -C $dataDIR/Acanthocephala.trimmed.fas.seq2species.txt
 
 
 ## if everything is well, then the computed reference matrix
-diff -qs $REF test.Ssum
+diff -qs $REF test.RefM
 RV=$?
 
 ## cleaning
-rm test.Ssum
+rm test.RefM
 
 if [ $RV -ne 0 ]
 then
-  echo "Problem in pyKleeBarcode_computeSsum_MPI.py with correspondence file test. Consult correspondence.test_log.txt"
+  echo "Problem in pyKleeBarcode_computeRefMat_MPI.py with correspondence file test. Consult correspondence.test_log.txt"
   exit $RV
 fi
 
 
-## computeSsum
+## computeRefM
 ## generating indicator vectors  
 REF_SSUM=$REF
 ##creating reference file
@@ -96,6 +96,6 @@ rm $REF
 
 if [ $RV -ne 0 ]
 then
-  echo "Problem in pyKleeBarcode_computeSsum_MPI.py with correspondence file test. Consult correspondence.test_log.txt"
+  echo "Problem in pyKleeBarcode_computeIndicatorVector_MPI.py with correspondence file test. Consult correspondence.test_log.txt"
   exit $RV
 fi

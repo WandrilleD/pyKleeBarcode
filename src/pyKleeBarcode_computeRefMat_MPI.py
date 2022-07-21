@@ -4,9 +4,9 @@ import numpy as np
 from scipy.sparse import csr_matrix
 import time
 
-from pyKleeBarcode_utils import iterFasta, CSVmat, getSequenceSpecies , getModalValueIncludingSpecialRules , sequenceToBarcode , saveSsum , readSequenceSpeciesCorrespondenceFile
+from pyKleeBarcode_utils import iterFasta, CSVmat, getSequenceSpecies , getModalValueIncludingSpecialRules , sequenceToBarcode , saveRefM , readSequenceSpeciesCorrespondenceFile
 
-from pyKleeBarcode_linearAlgebra import computeSsum_sparse
+from pyKleeBarcode_linearAlgebra import computeRefM_sparse
 
 
 if __name__ == "__main__":
@@ -49,13 +49,13 @@ if __name__ == "__main__":
 		import argparse
 
 		parser = argparse.ArgumentParser(
-				description="""Computes Ssum, a matrix representation of the diversity of a DNA sequence across a number of individuals or groups or individuals (typically, species)
+				description="""Computes a reference matrix: a matrix representation of the diversity of a DNA sequence across a number of individuals or groups or individuals (typically, species)
 							   according to the definitions of "A scalable method for analysis and display of DNA sequences" by Sirovitch et alii 
 								""")
 		parser.add_argument('-i','--inputFile', type=str, required=True,
 			 help='input multiple sequence alignment in fasta format (preferably, trimmed)')
 		parser.add_argument('-o','--outputFile', type=str, required=True,
-			 help='output file name for the Ssum matrix')
+			 help='output file name for the reference matrix')
 
 		parser.add_argument('-m','--max-seq-per-species', type=int, default=5,
 			 help='maximum number of sequences kept per species. Default : 3. Set to 0 to have no limit ; be careful thought, as this parameter has a direct impact on speed.')
@@ -252,7 +252,7 @@ if __name__ == "__main__":
 	global_S_sum = None
 
 	# first, local computation
-	local_S_sum =  computeSsum_sparse( speciesMatrices , local_speciesOrder , seqLen*4 )
+	local_S_sum =  computeRefM_sparse( speciesMatrices , local_speciesOrder , seqLen*4 )
 
 	
 
@@ -286,6 +286,6 @@ if __name__ == "__main__":
 		print( 'shape' , global_S_sum.shape )
 		print( 'shape' , global_S_sum.dtype )
 		global_S_sum = global_S_sum.toarray()
-		saveSsum( global_S_sum , nbSpecies , args.outputFile)
+		saveRefM( global_S_sum , nbSpecies , args.outputFile)
 
 

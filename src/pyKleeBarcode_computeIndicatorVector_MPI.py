@@ -6,7 +6,7 @@ import time
 import warnings
 warnings.filterwarnings('ignore')
 
-from pyKleeBarcode_utils import iterFasta, CSVmat, getSequenceSpecies , getModalValueIncludingSpecialRules , sequenceToBarcode, loadSsum, writeIndicatorVectors , readSequenceSpeciesCorrespondenceFile
+from pyKleeBarcode_utils import iterFasta, CSVmat, getSequenceSpecies , getModalValueIncludingSpecialRules , sequenceToBarcode, loadRefM, writeIndicatorVectors , readSequenceSpeciesCorrespondenceFile
 
 from pyKleeBarcode_linearAlgebra import computeSingleIndicatorVector_sparse
 
@@ -109,15 +109,15 @@ if __name__ == "__main__":
 		import argparse
 
 		parser = argparse.ArgumentParser(
-				description="""Computes the indicator vectors of the DNA sequences of a number of individuals or groups or individuals (typically, species), from the diversity represented in a given Ssum matrix
+				description="""Computes the indicator vectors of the DNA sequences of a number of individuals or groups or individuals (typically, species), from the diversity represented in a given RefM matrix
 							   according to the definitions of "A scalable method for analysis and display of DNA sequences" by Sirovitch et alii 
 								""")
 		parser.add_argument('-i','--inputFile', type=str, required=True,
 			 help='input multiple sequence alignment in fasta format (preferably, trimmed)')
-		parser.add_argument('-S','--inputSsumFile', type=str, required=True,
-			 help='input Ssum matrix (expected: binary format as produced by the pyKleeBarcode_computeSsum_MPI.py script)')
+		parser.add_argument('-S','--inputRefMFile', type=str, required=True,
+			 help='input reference matrix matrix (expected: binary format as produced by the pyKleeBarcode_computeRefMat_MPI.py script)')
 		parser.add_argument('-o','--outputFile', type=str, required=True,
-			 help='output file name for the Ssum matrix')
+			 help='output file name for the RefM matrix')
 
 		parser.add_argument('-m','--max-seq-per-species', type=int, default=5,
 			 help='maximum number of sequences kept per species. Default : 3. Set to 0 to have no limit ; be careful thought, as this parameter has a direct impact on speed.')
@@ -308,11 +308,11 @@ if __name__ == "__main__":
 	T = time.time()
 
 	global_S_sum = None
-	S_sum_N = 0 # number of sequences used to build Ssum, for normalization purpose
+	S_sum_N = 0 # number of sequences used to build RefM, for normalization purpose
 
 
 	if MPI_rank == 0:
-		global_S_sum , S_sum_N = loadSsum( args.inputSsumFile )
+		global_S_sum , S_sum_N = loadRefM( args.inputRefMFile )
 		global_S_sum = csr_matrix( global_S_sum )
 		nz = global_S_sum.count_nonzero()
 		print( 'non-zeros : {} ({:.3f})'.format( nz , nz/global_S_sum.size ) )

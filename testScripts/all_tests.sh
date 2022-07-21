@@ -4,15 +4,15 @@ SCRIPT_DIR=`dirname "$0"`
 
 
 
-sh $SCRIPT_DIR/test_computeSsum.sh > computeSsum.test_log.txt 2>&1
+sh $SCRIPT_DIR/test_computeRefMat.sh > computeRefMat.test_log.txt 2>&1
 RV=$?
-echo "test_computeSsum.sh"
+echo "test_computeRefMat.sh"
 
 if [ $RV -eq 0 ]
 then
-  echo "computeSsum .................................... OK"
+  echo "computeRefMat .................................... OK"
 else
-  echo "Problem in computeSsum test. Consult computeSsum.test_log.txt"
+  echo "Problem in computeRefMat test. Consult computeRefMat.test_log.txt"
   exit $RV
 fi
 
@@ -67,15 +67,15 @@ else
 fi
 
 
-sh $SCRIPT_DIR/test_mergeSsum.sh > mergeSsum.test_log.txt 2>&1
+sh $SCRIPT_DIR/test_mergeRefMat.sh > mergeRefMat.test_log.txt 2>&1
 RV=$?
-echo "test_mergeSsum.sh"
+echo "test_mergeRefMat.sh"
 
 if [ $RV -eq 0 ]
 then
-  echo "mergeSsum ...................................... OK"
+  echo "mergeRefMat ...................................... OK"
 else
-  echo "Problem in mergeSsum test. Consult mergeSsum.test_log.txt"
+  echo "Problem in mergeRefMat test. Consult mergeRefMat.test_log.txt"
   exit $RV
 fi
 

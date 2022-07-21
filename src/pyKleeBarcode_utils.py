@@ -214,11 +214,11 @@ def loadBinaryMatrix( pth):
 	return np.frombuffer(data, dtype=dtype).reshape((int(w), int(h)))
 
 
-def saveSsum( arr , N , pth):
+def saveRefM( arr , N , pth):
 	"""function adapted from https://github.com/mverleg/array_storage_benchmark
 
 	Takes:
-		- arr : numpy array . Ssum, a matrix representation of the diversity of a DNA sequence across a number of individuals or groups or individuals (typically, species)
+		- arr : numpy array . RefM, a matrix representation of the diversity of a DNA sequence across a number of individuals or groups or individuals (typically, species)
 							   according to the definitions of "A scalable method for analysis and display of DNA sequences" by Sirovitch et alii 
 		- N : int . number of sequences (or group of sequences) used to create the array
 		- pth : output path
@@ -229,14 +229,14 @@ def saveSsum( arr , N , pth):
 		fh.write(arr.data)
 		
 
-def loadSsum( pth):
+def loadRefM( pth):
 	"""function adapted from https://github.com/mverleg/array_storage_benchmark
 
 	Takes:
 		- pth : input path
 
 	Returns:
-		numpy array : Ssum, a matrix representation of the diversity of a DNA sequence across a number of individuals or groups or individuals (typically, species)
+		numpy array : RefM, a matrix representation of the diversity of a DNA sequence across a number of individuals or groups or individuals (typically, species)
 							   according to the definitions of "A scalable method for analysis and display of DNA sequences" by Sirovitch et alii 
 		int : number of sequences (or group of sequences) used to create the array
 	"""

@@ -6,7 +6,7 @@ dataDIR=$SCRIPT_DIR/../testData
 srcDIR=$SCRIPT_DIR/../src
 
 SOURCE=$dataDIR/1turdus_migratorius_BLAST100_NJptp.trimmed_50_640.fas
-REFSSUM=$dataDIR/1turdus_migratorius_BLAST100_NJptp.trimmed_50_640.fas.Ssum
+REFSSUM=$dataDIR/1turdus_migratorius_BLAST100_NJptp.trimmed_50_640.fas.RefM
 REFIVEC=$dataDIR/1turdus_migratorius_BLAST100_NJptp.trimmed_50_640.fas.indicatorVectors.csv
 
 ## generating indicator vectors  for this alignment

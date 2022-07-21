@@ -8,7 +8,7 @@ warnings.filterwarnings('ignore')
 
 from pyKleeBarcode_utils import iterFasta, writeStructureMatrix_bin, getSequenceSpecies , getModalValueIncludingSpecialRules , sequenceToBarcode, readSequenceSpeciesCorrespondenceFile
 
-from pyKleeBarcode_linearAlgebra import computeSsum_sparse , computeSingleIndicatorVector_sparse , computeStructureMatrixFromIndicatorVectors, computeAndWriteStructureMatrixFromIndicatorVectors, computeIndicatorVectors
+from pyKleeBarcode_linearAlgebra import computeRefM_sparse , computeSingleIndicatorVector_sparse , computeStructureMatrixFromIndicatorVectors, computeAndWriteStructureMatrixFromIndicatorVectors, computeIndicatorVectors
 
 
 
@@ -160,7 +160,7 @@ if __name__ == "__main__":
 
 	else: # alternative procedure where the structure matrix is not explicitely declared in memory, when it becomes too large
 		
-		S_sum =  computeSsum_sparse( speciesMatrices , speciesOrder , seqLen*4 )
+		S_sum =  computeRefM_sparse( speciesMatrices , speciesOrder , seqLen*4 )
 		indicVec = {}
 
 		for sp in speciesMatrices.keys():

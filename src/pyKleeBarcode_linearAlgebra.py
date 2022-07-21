@@ -6,7 +6,7 @@ from pyKleeBarcode_utils import writeStructureMatrix_line_bin
 
 #from memory_profiler import profile
 
-def computeSsum( speciesMatrices , spList , seqLen ):
+def computeRefM( speciesMatrices , spList , seqLen ):
 	S_Sum = np.zeros( ( seqLen , seqLen ) )
 	for sp in spList :
 		S_Sum += selfTransposeComput( speciesMatrices[sp] )
@@ -30,7 +30,7 @@ def selfTransposeComput_sparse( M ):
 	"""
 	return M.transpose().dot(M)
 
-def computeSsum_sparse( speciesMatrices , spList , seqLen ):
+def computeRefM_sparse( speciesMatrices , spList , seqLen ):
 	"""
 		Takes:
 			- speciesMatrices (dict) : keys are species/group names, values are the sparse matrix describing their associated sequences
@@ -171,7 +171,7 @@ def computeIndicatorVectors( speciesMatrices , speciesOrder , verbose = True):
 	#S_sum <- for each group/species : multiply with transposed and add 
 	speciesMatrices_sparse = { sp : csr_matrix(m) for sp , m in speciesMatrices.items()}
 	
-	S_sum_sparse = computeSsum_sparse( speciesMatrices_sparse , speciesOrder , seqLen )
+	S_sum_sparse = computeRefM_sparse( speciesMatrices_sparse , speciesOrder , seqLen )
 
 	V = np.zeros( ( seqLen , nbSpecies ) )
 	D = np.zeros( ( nbSpecies , 1 ) )

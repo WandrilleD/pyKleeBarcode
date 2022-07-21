@@ -25,7 +25,7 @@ To test all scripts at once, use `sh testScripts/all_tests.sh` (NB: the test scr
 ### Structure Matrix computation
 
 Structure matrix computation is performed in 3 steps:
- 1. computing the Ssum matrix from a (trimmed) alignment
+ 1. computing the reference matrix from a (trimmed) alignment
  2. computing indicator vectors from an Ssum matrix and an alignment
  3. computing the structure matrix from the indicator vectors
 
@@ -33,7 +33,7 @@ Structure matrix computation is performed in 3 steps:
 If the dataset you manipulate is of a reasonnable size (say, less than 1000 sequences), then you may use the `src/pyKleeBarcode_MPI.py` script which wraps all three steps together.
 
 However if your dataset is larger we recommend you use the scripts corresponding to each step:
- 1. `src/pyKleeBarcode_computeSsum_MPI.py`
+ 1. `src/pyKleeBarcode_computeRefMat_MPI.py`
  2. `src/pyKleeBarcode_computeIndicatorVector_MPI.py`
  3. `src/pyKleeBarcode_computeStructureMatrix.py`
 
@@ -41,9 +41,9 @@ The reason why are that each step require different amount of resources and bene
 Also, the results from the first two steps (Ssum matrix and Indicator vector computation) can be aggregated with results from previous run (see [later section](...)).
 
 
-#### step 1: pyKleeBarcode_computeSsum_MPI.py
+#### step 1: pyKleeBarcode_computeRefMat_MPI.py
 
-Computes Ssum, a matrix representation of the diversity of a DNA sequence across a number of individuals or groups or individuals (typically, species)
+Computes the reference matrix, a matrix representation of the diversity of a DNA sequence across a number of individuals or groups or individuals (typically, species)
 given in an input alignment.
 
 
@@ -51,15 +51,17 @@ given in an input alignment.
 python pyKleeBarcode_computeSsum_MPI.py --help
 ```
 ```
-usage: pyKleeBarcode_computeSsum_MPI.py [-h] -i INPUTFILE -o OUTPUTFILE
-                                        [-m MAX_SEQ_PER_SPECIES]
-                                        [-f FIELD_DELIMITOR]
-                                        [-s SPECIES_FIELD_INDEX] [--seed SEED]
+usage: pyKleeBarcode_computeRefMat_MPI.py [-h] -i INPUTFILE -o OUTPUTFILE
+                                          [-m MAX_SEQ_PER_SPECIES]
+                                          [-f FIELD_DELIMITOR]
+                                          [-s SPECIES_FIELD_INDEX]
+                                          [-C CORRESPONDENCE_FILE]
+                                          [--seed SEED]
 
-Computes Ssum, a matrix representation of the diversity of a DNA sequence
-across a number of individuals or groups or individuals (typically, species)
-according to the definitions of "A scalable method for analysis and display of
-DNA sequences" by Sirovitch et alii
+Computes a reference matrix: a matrix representation of the diversity of a DNA
+sequence across a number of individuals or groups or individuals (typically,
+species) according to the definitions of "A scalable method for analysis and
+display of DNA sequences" by Sirovitch et alii
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -67,45 +69,64 @@ optional arguments:
                         input multiple sequence alignment in fasta format
                         (preferably, trimmed)
   -o OUTPUTFILE, --outputFile OUTPUTFILE
-                        output file name for the Ssum matrix
+                        output file name for the reference matrix
   -m MAX_SEQ_PER_SPECIES, --max-seq-per-species MAX_SEQ_PER_SPECIES
                         maximum number of sequences kept per species. Default
                         : 3. Set to 0 to have no limit ; be careful thought,
                         as this parameter has a direct impact on speed.
   -f FIELD_DELIMITOR, --field-delimitor FIELD_DELIMITOR
-                        field delimitor of the fasta sequence id lines. default: "|"
+                        field delimitor of the fasta sequence id lines.
+                        default: "|"
   -s SPECIES_FIELD_INDEX, --species-field-index SPECIES_FIELD_INDEX
                         index (starting at 0) of the species name in the fasta
                         sequence id lines. default: 1
+  -C CORRESPONDENCE_FILE, ---correspondence-file CORRESPONDENCE_FILE
+                        name of a comma-delimited file containing
+                        correspondence between sequence and species. Overrides
+                        option -s when used. One sequence ID per line,
+                        sequence id and species name separated by a semicolumn
+                        (;).
   --seed SEED           random seed used when selecting a species sequences if
                         there is more than --max-seq-per-species. By default
                         is it created using time.
-
 ```
 
-The `-m`, `-f`, `-s`, and `--seed` options are designed for the case where a number of sequence should be aggregated prior to the computation of the matrix.
-This can serve as an elegant solution to the overrepresentation of certain species (or whichever grouping you choose) where these are prevented from taking too much space in the created reference space (ie. the Ssum matrix), while still conserving all the information about the diversity of the sequence in these species.
+The `-m`, `-f`, `-s`, `-C`, and `--seed` options are designed for the case where a number of sequence should be aggregated prior to the computation of the matrix.
+This can serve as an elegant solution to the overrepresentation of certain species (or whichever grouping you choose) where these are prevented from taking too much space in the created reference space (ie. the reference matrix), while still conserving all the information about the diversity of the sequence in these species.
 
 
 **Aparte : grouping of sequences.**
-The grouping of sequences is governed by the field delimitor (`-f`) and field index (`-s`) options, whose default are, respectively `'|'` and `1`.
+By default, the grouping of sequences is governed by the field delimitor (`-f`) and field index (`-s`) options, whose default are, respectively `'|'` and `1`.
 This means that the sequences will be grouped according to the second field (indexing begins at 0) in a | delimited fasta id line. For instance:
 
-`> GBSP13299-19|Pseudocorynosoma anatarium|COI-5P|KX688147`
+`>GBSP13299-19|Pseudocorynosoma anatarium|COI-5P|KX688147`
 
 With the default values the group will be : `Pseudocorynosoma anatarium`.
 
 With this form of sequence ids, one can avoid any kind of grouping (ie. keep all sequences as separate), one could set the `-s` option to `0` : the grouping would be the unique sequence id.
 
+Alternatively, you can provide the associations between sequence and group in an external file using the `-C` option.
+The file is expected to contain one association (ie, 1 sequence and 1 group) per line, separated by semicolons (`;`).
 
+The sequence id used should correspond to the first field of the corresponding the fasta id line (field delimitor:`|`, can be changed with `-f`).
+
+For instance if the correspondence file contains the line:
+
+`GBSP13299-19;specieA`
+
+Then a sequence with the fasta id line: `>GBSP13299-19|Pseudocorynosoma anatarium|COI-5P|KX688147` will be associated to `speciesA`.
+
+---
 
 
 As the title entails, this script can be parallelized using MPI if you have installed the proper library on your system.
 
 **example usage:**
 ```
-mpirun -np 4 python src/pyKleeBarcode_computeSsum_MPI.py -i testData/1turdus_migratorius_BLAST100_NJptp.trimmed_50_640.fas -o 1turdus_migratorius_BLAST100_NJptp.trimmed_50_640.fas.Ssum 
+mpirun -np 4 python src/pyKleeBarcode_computeRefMat_MPI.py -i testData/1turdus_migratorius_BLAST100_NJptp.trimmed_50_640.fas -o 1turdus_migratorius_BLAST100_NJptp.trimmed_50_640.fas.Ssum 
 ```
+
+> See the various scripts in `testScripts/` for more example usages.
 
 #### step 2: pyKleeBarcode_computeIndicatorVector_MPI.py
 
@@ -119,6 +140,7 @@ usage: pyKleeBarcode_computeIndicatorVector_MPI.py [-h] -i INPUTFILE -S
                                                    [-m MAX_SEQ_PER_SPECIES]
                                                    [-f FIELD_DELIMITOR]
                                                    [-s SPECIES_FIELD_INDEX]
+                                                   [-C CORRESPONDENCE_FILE]
                                                    [--seed SEED]
 
 Computes the indicator vectors of the DNA sequences of a number of individuals
@@ -145,13 +167,19 @@ optional arguments:
   -s SPECIES_FIELD_INDEX, --species-field-index SPECIES_FIELD_INDEX
                         index (starting at 0) of the species name in the fasta
                         sequence id lines. default: 1
+  -C CORRESPONDENCE_FILE, ---correspondence-file CORRESPONDENCE_FILE
+                        name of a comma-delimited file containing
+                        correspondence between sequence and species. Overrides
+                        option -s when used. One sequence ID per line,
+                        sequence id and species name separated by a semicolumn
+                        (;).
   --seed SEED           random seed used when selecting a species sequences if
                         there is more than --max-seq-per-species. By default
                         is it created using time.
 ```
 
-The `-m`, `-f`, `-s`, and `--seed` options are designed for the case where a number of sequence should be aggregated prior to the computation of the indicator vector.
-In general they should be (although this is not mandatory), the same values as the one given during the computation of the Ssum matrix in the previous step.
+The `-m`, `-f`, `-s`, `-C` and `--seed` options are designed for the case where a number of sequence should be aggregated prior to the computation of the indicator vector.
+In general they should be set to(although this is not mandatory), the same values as the one given during the computation of the reference matrix in the previous step.
 
 **example usage:**
 ```
@@ -192,7 +220,8 @@ python src/pyKleeBarcode_MPI.py --help
 ```
 usage: pyKleeBarcode_MPI.py [-h] -i INPUTFILE -o OUTPUTFILE
                             [-m MAX_SEQ_PER_SPECIES] [-f FIELD_DELIMITOR]
-                            [-s SPECIES_FIELD_INDEX] [--seed SEED]
+                            [-s SPECIES_FIELD_INDEX] [-C CORRESPONDENCE_FILE]
+                            [--seed SEED]
 
 Computes a structure matrix between sets of DNA sequences (typically grouped
 by species) according to the definitions of "A scalable method for analysis
@@ -215,6 +244,12 @@ optional arguments:
   -s SPECIES_FIELD_INDEX, --species-field-index SPECIES_FIELD_INDEX
                         index (starting at 0) of the species name in the fasta
                         sequence id lines. default: 1
+  -C CORRESPONDENCE_FILE, ---correspondence-file CORRESPONDENCE_FILE
+                        name of a comma-delimited file containing
+                        correspondence between sequence and species. Overrides
+                        option -s when used. One sequence ID per line,
+                        sequence id and species name separated by a semicolumn
+                        (;).
   --seed SEED           random seed used when selecting a species sequences if
                         there is more than --max-seq-per-species. By default
                         is it created using time.
@@ -233,13 +268,13 @@ python src/pyKleeBarcode_MPI.py --inputFile testData/1turdus_migratorius_BLAST10
 `pyKleeBarcode` offers utilities to allows massive distribution of the computations needed to compute indicator vectors and a structure matrix,
 as well as the possibility to update an existing structure matrix with new data without having to re-compute everything from scratch.
 
-#### Ssum matrix merging : `src/mergeSsum.py`
+#### Ssum matrix merging : `src/mergeReferenceMat.py`
 
-Provided that they were computed on an independent set of sequences AND that no grouping/species are shared, then two Ssum matrices can be merged (at a very reasonnable cost, because the only required operation is a single matrix addition).
+Provided that they were computed on an independent set of sequences AND that no grouping/species are shared, then two reference matrices can be merged (at a very reasonnable computational cost, because the only required operation is a simple matrix addition).
 
-This allows the computation of the Ssum matrix to be subdivided in any number of subtasks (as long as the species/groups are part of the same subtask), by simply splitting the input alignment, and subsequently merging the resulting matrices.
+This allows the computation of the reference matrix to be subdivided in any number of subtasks (as long as the species/groups are part of the same subtask), by simply splitting the input alignment, and subsequently merging the resulting matrices.
 
-This also allows one to update a previously obtained matrix with a new set of sequences, as long as these new sequences only belong to species/groups hitherto absent from the Ssum matrix.
+This also allows one to update a previously obtained matrix with a new set of sequences, as long as these new sequences only belong to species/groups hitherto absent from the reference matrix.
 
 #### Indicator vector merging
 

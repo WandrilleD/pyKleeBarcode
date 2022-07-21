@@ -8,7 +8,7 @@ warnings.filterwarnings('ignore')
 
 from pyKleeBarcode_utils import iterFasta, writeStructureMatrix_bin, getSequenceSpecies , getModalValueIncludingSpecialRules , sequenceToBarcode, readSequenceSpeciesCorrespondenceFile
 
-from pyKleeBarcode_linearAlgebra import computeSsum_sparse , computeSingleIndicatorVector_sparse , computeStructureMatrixFromIndicatorVectors, computeAndWriteStructureMatrixFromIndicatorVectors
+from pyKleeBarcode_linearAlgebra import computeRefM_sparse , computeSingleIndicatorVector_sparse , computeStructureMatrixFromIndicatorVectors, computeAndWriteStructureMatrixFromIndicatorVectors
 
 
 
@@ -309,7 +309,7 @@ if __name__ == "__main__":
 	global_S_sum = None
 
 	# first, local computation
-	local_S_sum =  computeSsum_sparse( speciesMatrices , local_speciesOrder , seqLen*4 )
+	local_S_sum =  computeRefM_sparse( speciesMatrices , local_speciesOrder , seqLen*4 )
 
 	
 
