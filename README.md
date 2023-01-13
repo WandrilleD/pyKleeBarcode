@@ -20,7 +20,7 @@ The structure matrix describe degrees of closedness between sequence, you can re
     * [step 2: pyKleeBarcode_computeIndicatorVector_MPI.py](#step-2-pykleebarcode_computeindicatorvector_mpipy)
     * [step 3: pyKleeBarcode_computeStructureMatrix.py](#step-3-pyKleeBarcode_computestructurematrixpy)
     * [all steps in one go (recommended for small dataset only)](#all-steps-in-one-go-recommended-for-small-dataset-only)
-  * [Handling large datasets & updating an existing system](#handling-large-datasets-updating-an-existing-system)
+  * [Handling large datasets & updating an existing system](#handling-large-datasets--updating-an-existing-system)
     * [Reference matrix merging](#reference-matrix-merging)
     * [Indicator vector merging](#indicator-vector-merging)
     * [Structure matrix updating](#structure-matrix-updating)
