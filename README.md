@@ -1,20 +1,39 @@
 
-This code implements methods and scripts to compute a structure matrix from a multiple sequence alignment.
+This code implements methods and scripts to compute indicator vectors and a structure matrix from a multiple sequence alignment.
 
-The structure matrix describe degrees of closedness between sequence, and is computed using the methods from:
+The structure matrix describe degrees of closedness between sequence, you can read more on structure matrices and how they are computed in:
 
- * Structural analysis of biodiversity , Sirovitch 2010
- * A scalable method for analysis and display of DNA sequences 2009
+ * [Sirovich L, Stoeckle MY, Zhang Y (2010) Structural Analysis of Biodiversity. PLoS ONE 5(2): e9266. https://doi.org/10.1371/journal.pone.0009266](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0009266)
+ * [Sirovich L, Stoeckle MY, Zhang Y (2009) A Scalable Method for Analysis and Display of DNA Sequences. PLoS ONE 4(10): e7051. https://doi.org/10.1371/journal.pone.0007051](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0007051)
 
 
 > Note on the usage of the term "species" in this notice: we use here the term species in the a sense, as a modality to group different sequences together. In practice, one can group sequences by any arbitrary unit they define, or not group them at all.
 
-## Requirements : 
 
-You need to have the scipy librairies installed. Look here for instructions : https://www.scipy.org/install.html (like them, I suggest using Anaconda).
+## Contents
+
+ * [Requirements](#requirements)
+ * [Test](#test)
+ * [Usage ](#usage )
+  * [Structure Matrix computation](#structure-matrix-computation)
+    * [step 1: pyKleeBarcode_computeRefMat_MPI.py](#step-1-pykleebarcode_computerefmat_mpipy)
+    * [step 2: pyKleeBarcode_computeIndicatorVector_MPI.py](#step-2-pykleebarcode_computeindicatorvector_mpipy)
+    * [step 3: pyKleeBarcode_computeStructureMatrix.py](#step-3-pyKleeBarcode_computestructurematrixpy)
+    * [all steps in one go (recommended for small dataset only)](#all-steps-in-one-go-recommended-for-small-dataset-only)
+  * [Handling large datasets & updating an existing system](#handling-large-datasets-updating-an-existing-system)
+    * [Reference matrix merging](#reference-matrix-merging)
+    * [Indicator vector merging](#indicator-vector-merging)
+    * [Structure matrix updating](#structure-matrix-updating)
+  * [Other scripts](#other-scripts)
+    * [Alignment utilities](#alignment-utilities)
+    * [Representation of structure matrix](#representation-of-structure-matrix)
+
+## Requirements 
+
+You need to have the scipy librairies installed. Look here for instructions : [https://www.scipy.org/install.html](https://www.scipy.org/install.html) (like them, we suggest using Anaconda).
 For the MPI script you need to have MPI enable on the machine and the python library mpi4py installed.
 
-## Test :
+## Test 
 
 The `testscripts/` folder contains a number of tests for the different scripts. They provide both a way to verify that your environment is compatible with the software and provide usage examples.
 
@@ -26,7 +45,7 @@ To test all scripts at once, use `sh testScripts/all_tests.sh` (NB: the test scr
 
 Structure matrix computation is performed in 3 steps:
  1. computing the reference matrix from a (trimmed) alignment
- 2. computing indicator vectors from an Ssum matrix and an alignment
+ 2. computing indicator vectors from a reference matrix and an alignment
  3. computing the structure matrix from the indicator vectors
 
 
@@ -38,7 +57,7 @@ However if your dataset is larger we recommend you use the scripts corresponding
  3. `src/pyKleeBarcode_computeStructureMatrix.py`
 
 The reason why are that each step require different amount of resources and benefit differently from parallelization.
-Also, the results from the first two steps (Ssum matrix and Indicator vector computation) can be aggregated with results from previous run (see [later section](...)).
+Also, the results from the first two steps (reference matrix and Indicator vector computation) can be aggregated with results from previous run (see [Reference matrix merging](#reference-matrix-merging), [Indicator vector merging](#indicator-vector-merging), and [Structure matrix updating](#structure-matrix-updating)).
 
 
 #### step 1: pyKleeBarcode_computeRefMat_MPI.py
@@ -48,7 +67,7 @@ given in an input alignment.
 
 
 ```sh
-python pyKleeBarcode_computeSsum_MPI.py --help
+python pyKleeBarcode_computeRefMat_MPI.py --help
 ```
 ```
 usage: pyKleeBarcode_computeRefMat_MPI.py [-h] -i INPUTFILE -o OUTPUTFILE
@@ -145,7 +164,7 @@ usage: pyKleeBarcode_computeIndicatorVector_MPI.py [-h] -i INPUTFILE -S
 
 Computes the indicator vectors of the DNA sequences of a number of individuals
 or groups or individuals (typically, species), from the diversity represented
-in a given Ssum matrix according to the definitions of "A scalable method for
+in a given reference matrix according to the definitions of "A scalable method for
 analysis and display of DNA sequences" by Sirovitch et alii
 
 optional arguments:
@@ -153,11 +172,12 @@ optional arguments:
   -i INPUTFILE, --inputFile INPUTFILE
                         input multiple sequence alignment in fasta format
                         (preferably, trimmed)
-  -S INPUTSSUMFILE, --inputSsumFile INPUTSSUMFILE
-                        input Ssum matrix (expected: binary format as produced
-                        by the pyKleeBarcode_computeSsum_MPI.py script)
+  -S INPUTSSUMFILE, --inputRefMFile INPUTREFMFILE
+                        input reference matrix matrix (expected: binary format 
+                        as produced by the pyKleeBarcode_computeRefMat_MPI.py 
+                        script)                        
   -o OUTPUTFILE, --outputFile OUTPUTFILE
-                        output file name for the Ssum matrix
+                        output file name for the indicator vectors (csv format)
   -m MAX_SEQ_PER_SPECIES, --max-seq-per-species MAX_SEQ_PER_SPECIES
                         maximum number of sequences kept per species. Default
                         : 3. Set to 0 to have no limit ; be careful thought,
@@ -268,7 +288,9 @@ python src/pyKleeBarcode_MPI.py --inputFile testData/1turdus_migratorius_BLAST10
 `pyKleeBarcode` offers utilities to allows massive distribution of the computations needed to compute indicator vectors and a structure matrix,
 as well as the possibility to update an existing structure matrix with new data without having to re-compute everything from scratch.
 
-#### Ssum matrix merging : `src/mergeReferenceMat.py`
+#### Reference matrix merging 
+
+script : `src/mergeReferenceMat.py`
 
 Provided that they were computed on an independent set of sequences AND that no grouping/species are shared, then two reference matrices can be merged (at a very reasonnable computational cost, because the only required operation is a simple matrix addition).
 
@@ -278,17 +300,17 @@ This also allows one to update a previously obtained matrix with a new set of se
 
 #### Indicator vector merging
 
-The computation of indicator vectors can be made completely independently between each sequence, provided the script are given the same Ssum matrix.
-Thus, after the Ssum matrix computation one can split the input alignment however they see fit in order to distribute the computation of the indicator vectors as needed.
+The computation of indicator vectors can be made completely independently between each sequence, provided the script are given the same reference matrix.
+Thus, after the reference matrix computation one can split the input alignment however they see fit in order to distribute the computation of the indicator vectors as needed.
 
 Indicator vector files are simple `.csv` files which can be merged by concatenation, for example with a simple `cat` command call.
 
-Given this, updating a set of indicator vectors with new sequences is fairly simple. One would have to compute the indicator vectors of the new sequences (using the same Ssum matrix as the one used for the already existing indicator vectors), and then concatenate the created indicator vector file to the existing one.
+Given this, updating a set of indicator vectors with new sequences is fairly simple. One would have to compute the indicator vectors of the new sequences (using the same reference matrix as the one used for the already existing indicator vectors), and then concatenate the created indicator vector file to the existing one.
 
 
 #### Structure matrix updating
 
-While the previous steps could be split fairly arbitrarily with at little computational cost, the structure matrix computation matrix computation is a more complicated affair, because it must look at all pairs of indicator vectors.
+While the previous steps could be split fairly arbitrarily with little computational cost, the structure matrix computation matrix computation is a more complicated affair, because it must look at all pairs of indicator vectors.
 
 Nevertheless, we have devised an algorithm that allows the update of an existing structure matrix with new indicator vector (thus, new sequences). 
 Because structure matrix files quickly become large (nb: it grows quadratically with the number of sequences) the structure matrix file format has been thought to allow and updating operation which does not have to re-write the whole file but only append the new information to it (long story short : we represent the lower triangular portion of the matrix only).

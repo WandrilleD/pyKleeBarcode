@@ -109,7 +109,7 @@ if __name__ == "__main__":
 		import argparse
 
 		parser = argparse.ArgumentParser(
-				description="""Computes the indicator vectors of the DNA sequences of a number of individuals or groups or individuals (typically, species), from the diversity represented in a given RefM matrix
+				description="""Computes the indicator vectors of the DNA sequences of a number of individuals or groups or individuals (typically, species), from the diversity represented in a given reference matrix
 							   according to the definitions of "A scalable method for analysis and display of DNA sequences" by Sirovitch et alii 
 								""")
 		parser.add_argument('-i','--inputFile', type=str, required=True,
@@ -117,8 +117,7 @@ if __name__ == "__main__":
 		parser.add_argument('-S','--inputRefMFile', type=str, required=True,
 			 help='input reference matrix matrix (expected: binary format as produced by the pyKleeBarcode_computeRefMat_MPI.py script)')
 		parser.add_argument('-o','--outputFile', type=str, required=True,
-			 help='output file name for the RefM matrix')
-
+			 help='output file name for the indicator vectors (csv format)')
 		parser.add_argument('-m','--max-seq-per-species', type=int, default=5,
 			 help='maximum number of sequences kept per species. Default : 3. Set to 0 to have no limit ; be careful thought, as this parameter has a direct impact on speed.')
 
