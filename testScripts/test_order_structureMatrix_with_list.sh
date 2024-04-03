@@ -9,7 +9,7 @@ REFSTM=$dataDIR/Acanthocephala.trimmed.fas.stMat.bin
 REFO=$dataDIR/Acanthocephala.randomOrder.50.txt
 REFRES=$dataDIR/Acanthocephala.randomOrder.50.stMat.bin
 
-## generating heatmap from structure matrix
+## reorder structure matrix
 
 python $srcDIR/order_structureMatrix_with_list.py -m $REFSTM -i $REFO -o stMat.tmp.bin
 

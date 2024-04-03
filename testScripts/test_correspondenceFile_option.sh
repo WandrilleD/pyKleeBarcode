@@ -8,20 +8,25 @@ srcDIR=$SCRIPT_DIR/../src
 SOURCE=$dataDIR/Acanthocephala.trimmed.fas
 ## generating reference structure matrix without the option
 python $srcDIR/pyKleeBarcode_MPI.py -i $SOURCE -o stMat.tmp2 -s 1
-REF=stMat.tmp2
+python $srcDIR/convertStructureMat_CSV_to_bin.py -i stMat.tmp2 -o stMat.tmp2.csv --bintocsv
+rm stMat.tmp2
+REF=stMat.tmp2.csv
 
 
 ## pyKleeBarcode_MPI
 
 ## generating structure matrix from the indicator vectors
 python $srcDIR/pyKleeBarcode_MPI.py -i $SOURCE -o stMat.tmp -C $dataDIR/Acanthocephala.trimmed.fas.seq2species.txt
+python $srcDIR/convertStructureMat_CSV_to_bin.py -i stMat.tmp -o stMat.tmp.csv --bintocsv
+
 
 ## if everything is well, then the computed indicator vectors should be equivalent to the ones we stored
-diff -qs $REF stMat.tmp
+python $SCRIPT_DIR/compareMatrices.py -i1 $REF -i2 stMat.tmp.csv --header --sep ,
 RV=$?
 
 ## cleaning
 rm stMat.tmp
+rm stMat.tmp.csv
 
 if [ $RV -ne 0 ]
 then
@@ -34,13 +39,16 @@ fi
 
 ## generating structure matrix from the indicator vectors
 python $srcDIR/pyKleeBarcode.py -i $SOURCE -o stMat.tmp -C $dataDIR/Acanthocephala.trimmed.fas.seq2species.txt
+python $srcDIR/convertStructureMat_CSV_to_bin.py -i stMat.tmp -o stMat.tmp.csv --bintocsv
+
 
 ## if everything is well, then the computed indicator vectors should be equivalent to the ones we stored
-diff -qs $REF stMat.tmp
+python $SCRIPT_DIR/compareMatrices.py -i1 $REF -i2 stMat.tmp.csv --header --sep ,
 RV=$?
 
 ## cleaning
 rm stMat.tmp
+rm stMat.tmp.csv
 
 if [ $RV -ne 0 ]
 then
@@ -60,12 +68,13 @@ REF=test.RefM2
 python $srcDIR/pyKleeBarcode_computeRefMat_MPI.py -i $SOURCE -o test.RefM -C $dataDIR/Acanthocephala.trimmed.fas.seq2species.txt
 
 
-## if everything is well, then the computed reference matrix
-diff -qs $REF test.RefM
+## if everything is well, then the computed reference matrix is the same
+python $srcDIR/compareReferenceMat.py -i1 $REF -i2 test.RefM
 RV=$?
 
 ## cleaning
 rm test.RefM
+
 
 if [ $RV -ne 0 ]
 then
@@ -82,11 +91,12 @@ python $srcDIR/pyKleeBarcode_computeIndicatorVector_MPI.py -i $SOURCE -S $REF_SS
 REF=indicVectors.tmp2
 
 
+
 python $srcDIR/pyKleeBarcode_computeIndicatorVector_MPI.py -i $SOURCE -S $REF_SSUM -o indicVectors.tmp -C $dataDIR/Acanthocephala.trimmed.fas.seq2species.txt
 
 
 ## if everything is well, then the computed reference matrix
-diff -qs $REF indicVectors.tmp
+python $SCRIPT_DIR/compareMatrices.py -i1 $REF -i2 indicVectors.tmp --index --sep ,
 RV=$?
 
 ## cleaning

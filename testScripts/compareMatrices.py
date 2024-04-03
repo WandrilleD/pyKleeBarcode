@@ -1,6 +1,13 @@
 import numpy as np
 
-
+def read_with_index_col( IN , sep = ','):
+	indexes = []
+	data = []
+	for l in IN:
+		idx , _ , numbers_string = l.strip().partition(sep)
+		indexes.append( idx )
+		data.append( np.fromstring(numbers_string , sep = sep) )
+	return indexes, np.array(data)
 
 if __name__ == "__main__":
 	import sys
@@ -15,6 +22,8 @@ if __name__ == "__main__":
 		 help='input csv matrix 2')
 	parser.add_argument('--header', action='store_true', required=False,
 		help='assume the matrices have a header line and compare this as well')
+	parser.add_argument('--index', action='store_true', required=False,
+		help='assume the matrices have a first column which corresponds to row index and compare this as well')
 	parser.add_argument('-s','--sep', type=str, default = ' ',
 		help='separator between fields (default is whitespace)')
 
@@ -27,25 +36,38 @@ if __name__ == "__main__":
 	hline1 = ''
 	hline2 = ''
 
+	idx1 , idx2 = None , None
+
 	mat1 = None
 	mat1 = None
 
 	with open(inFile1, 'r') as IN:
 		if args.header:
 			hline1 = IN.readline()
-		mat1 = np.loadtxt( IN , delimiter = args.sep)
+		if args.index:
+			idx1 , mat1 = read_with_index_col( IN , sep = args.sep)
+		else:
+			mat1 = np.loadtxt( IN , delimiter = args.sep)
 
 	with open(inFile2, 'r') as IN:
 		if args.header:
 			hline2 = IN.readline()
-		mat2 = np.loadtxt( IN , delimiter = args.sep)
+		if args.index:
+			idx2 , mat2 = read_with_index_col( IN , sep = args.sep)
+		else:
+			mat2 = np.loadtxt( IN , delimiter = args.sep)
+		
 		
 
 
 	sameH = hline1 == hline1
+	sameI = idx1 == idx2
 
 	if not sameH :
 		print("the header differs between the two matrices")
+
+	if not sameI :
+		print("the indexes differs between the two matrices")
 
 
 	closedness = np.isclose(mat1 , mat2 )

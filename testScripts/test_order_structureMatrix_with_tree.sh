@@ -9,7 +9,7 @@ REFSTM=$dataDIR/Acanthocephala.trimmed.fas.stMat.bin
 REFTREE=$dataDIR/Acanthocephala.trimmed.fas.nwk
 
 REFRES=$dataDIR/Acanthocephala.trimmed.fas.treeOrder.stMat.bin
-## generating heatmap from structure matrix
+## reorder structure matrix
 
 python $srcDIR/order_structureMatrix_with_tree.py -m $REFSTM -t $REFTREE -o stMat.tmp.bin
 

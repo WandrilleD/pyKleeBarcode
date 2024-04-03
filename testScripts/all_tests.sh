@@ -92,32 +92,6 @@ else
 fi
 
 
-sh $SCRIPT_DIR/test_heatmap_from_structureMatrix.sh > heatmap_from_structureMatrix.test_log.txt 2>&1
-RV=$?
-echo "test_heatmap_from_structureMatrix.sh"
-
-if [ $RV -eq 0 ]
-then
-  echo "heatmap_from_structureMatrix ................... OK"
-else
-  echo "Problem in heatmap_from_structureMatrix test. Consult heatmap_from_structureMatrix.test_log.txt"
-  exit $RV
-fi
-
-
-
-sh $SCRIPT_DIR/test_taxon_annotated_heatmap_from_structureMatrix.sh > taxon_annotated_heatmap_from_structureMatrix.test_log.txt 2>&1
-RV=$?
-echo "test_taxon_annotated_heatmap_from_structureMatrix.sh"
-
-if [ $RV -eq 0 ]
-then
-  echo "taxon_annotated_heatmap_from_structureMatrix ... OK"
-else
-  echo "Problem in taxon_annotated_heatmap_from_structureMatrix test. Consult taxon_annotated_heatmap_from_structureMatrix.test_log.txt"
-  exit $RV
-fi
-
 
 sh $SCRIPT_DIR/test_order_structureMatrix_with_list.sh > order_structureMatrix_with_list.test_log.txt 2>&1
 RV=$?

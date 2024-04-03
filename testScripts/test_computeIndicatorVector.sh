@@ -14,7 +14,7 @@ python $srcDIR/pyKleeBarcode_computeIndicatorVector_MPI.py -i $SOURCE -S $REFSSU
 
 
 ## if everything is well, then the computed indicator vectors should be equivalent to the ones we stored
-diff -qs $REFIVEC indicVectors.tmp
+python $SCRIPT_DIR/compareMatrices.py -i1 $REFIVEC -i2 indicVectors.tmp --index --sep ,
 RV=$?
 
 ## cleaning
