@@ -1,13 +1,23 @@
 
+[![10.1371/journal.pone.0286314](https://img.shields.io/badge/DOI-10.1371/journal.pone.0286314-blue.svg)](https://doi.org/10.1371/journal.pone.0286314)
+
+
+
 This code implements methods and scripts to compute indicator vectors and a structure matrix from a multiple sequence alignment.
+
 
 The structure matrix describe degrees of closedness between sequence, you can read more on structure matrices and how they are computed in:
 
+ * [Duchemin W, Thaler DS (2023) PyKleeBarcode: Enabling representation of the whole animal kingdom in information space. PLOS ONE 18(6): e0286314. https://doi.org/10.1371/journal.pone.0286314](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0286314)
  * [Sirovich L, Stoeckle MY, Zhang Y (2010) Structural Analysis of Biodiversity. PLoS ONE 5(2): e9266. https://doi.org/10.1371/journal.pone.0009266](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0009266)
  * [Sirovich L, Stoeckle MY, Zhang Y (2009) A Scalable Method for Analysis and Display of DNA Sequences. PLoS ONE 4(10): e7051. https://doi.org/10.1371/journal.pone.0007051](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0007051)
 
 
 > Note on the usage of the term "species" in this notice: we use here the term species in the a sense, as a modality to group different sequences together. In practice, one can group sequences by any arbitrary unit they define, or not group them at all.
+
+## Cite as
+
+If you use our software, please cite [our paper](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0286314).
 
 
 ## Contents
