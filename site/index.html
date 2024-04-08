@@ -1,0 +1,368 @@
+<!doctype html>
+<html>
+  <head>
+    <title>pyKlee</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+  </head>
+
+  <body>
+    <h1>running pyKlee on your web browser</h1>
+    <p>
+      
+      This is a simple port of <a href="https://github.com/WandrilleD/pyKleeBarcode">pykleeBarcode</a> in the web browser using <a href="https://pyodide.org/en/stable/index.html#">pyodide</a>. <br />
+      The current interface is fairly barebone, but do not hesitate to drop me an <a href="https://github.com/WandrilleD/pyKleeBarcode/issues">issue</a> if you encounter errors or would like to see more features. <br />
+
+      If you use pyKlee in your research, please cite our <a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0286314">paper</a>
+
+
+    </p>
+    <br />
+    Upload an aligned fasta file <input type="file" id="fasta_file_upload" name="fasta_file_upload" onchange="upload()">
+    <br />
+    NB: species are deduced as the second field of the | delimited fasta sequence names (>XP125MRU.1|Homo sapiens|ncbi is interpreted as species "Homo sapiens") 
+    
+    <br />
+    <br />
+    OR
+    <br />
+    <input type="checkbox" id="use_default_data" onchange="read_file()"> Use a default toy dataset (100 COI5P sequences from american robin).
+    <br />
+    <p id="data_info"></p>
+    <br />
+    <div id='matplotlib_target'></div>
+    <br />    
+    <div>Log:</div>
+    <textarea id="output" style="width: 100%;" rows="20" disabled></textarea>
+
+    <script>
+      const output = document.getElementById("output");
+
+      async function upload() {
+        let pyodide = await pyodideReadyPromise;
+
+        await pyodide.runPythonAsync(`
+import js
+fileList = js.document.getElementById("fasta_file_upload").files.to_py()
+for f in fileList:
+  data = await f.text()
+  with open("input.fas",'w') as OUT:
+    print(data,file=OUT)
+
+        `)
+        document.getElementById("use_default_data").checked = false;
+        read_file();
+    }
+
+
+      output.value = "Initializing...\n";
+      
+      // init Pyodide, install lirary and load custome scripts 
+      async function setup() {
+        let pyodide = await loadPyodide();
+        
+        pyodide.setStdout( { batched: msg => output.value += msg+"\n" } );
+        
+
+        pyodide.runPython(`
+import js
+js.document.getElementById("output").value = "pyodide initialized - please wait as external python libraries are fetched (this takes ~20 seconds);\\n"
+
+import time
+t0 = time.time()
+
+        `);
+
+        await pyodide.loadPackage("numpy");
+        await pyodide.loadPackage("scipy");
+        await pyodide.loadPackage("matplotlib");
+        document.pyodideMplTarget = document.getElementById('matplotlib_target')
+      
+        // Downloading custom python scripts and writing them to the virtual file system
+        await pyodide.runPythonAsync(`
+from pyodide.http import pyfetch
+import importlib
+
+response = await pyfetch("https://raw.githubusercontent.com/WandrilleD/pyKleeBarcode/master/src/pyKleeBarcode_utils.py")
+with open("pyKleeBarcode_utils.py", "wb") as f:
+    f.write(await response.bytes())
+
+response = await pyfetch("https://raw.githubusercontent.com/WandrilleD/pyKleeBarcode/master/src/pyKleeBarcode_linearAlgebra.py")
+with open("pyKleeBarcode_linearAlgebra.py", "wb") as f:
+    f.write(await response.bytes())
+
+response = await pyfetch("https://raw.githubusercontent.com/WandrilleD/pyKleeBarcode/master/src/heatmap_from_structureMatrix.py")
+with open("heatmap_from_structureMatrix.py", "wb") as f:
+    f.write(await response.bytes())
+
+
+
+importlib.invalidate_caches() # Make sure Python notices the new .py file
+
+print("custom scripts fetched;")
+        `)
+
+        pyodide.runPython(`
+from collections import defaultdict
+import numpy as np
+from scipy.sparse import csr_matrix
+
+import warnings
+warnings.filterwarnings('ignore')
+
+print("external libraries import ok;")
+
+from pyKleeBarcode_utils import iterFasta, writeStructureMatrix_bin, getSequenceSpecies , getModalValueIncludingSpecialRules , sequenceToBarcode, readSequenceSpeciesCorrespondenceFile
+
+from pyKleeBarcode_linearAlgebra import computeRefM_sparse , computeSingleIndicatorVector_sparse , computeStructureMatrixFromIndicatorVectors, computeAndWriteStructureMatrixFromIndicatorVectors, computeIndicatorVectors
+
+print("custom script import ok;")
+t1 = time.time()
+print(f"time for setup: {t1-t0:.1f} s")
+        `);
+        return pyodide;
+      }
+      
+      let pyodideReadyPromise = setup();
+
+      async function read_file() {
+        let pyodide = await pyodideReadyPromise;
+        // fetching input file from github
+        await pyodide.runPythonAsync(`
+import os
+
+reading_OK = False
+input_file = None
+
+if js.document.getElementById("use_default_data").checked:
+
+  response = await pyfetch("https://raw.githubusercontent.com/WandrilleD/pyKleeBarcode/master/testData/1turdus_migratorius_BLAST100_NJptp.trimmed_50_640.fas")
+  with open("input_default.fas", "wb") as f:
+      f.write(await response.bytes())
+  input_file = "input_default.fas"
+
+elif os.path.exists( "input.fas" ):
+  input_file = "input.fas"
+
+if not input_file is None:
+  try:
+    ## reading file
+    inFile = input_file
+
+    # maximum of sequence per species/group
+    MAX_SEQUENCE_PER_SPECIES = 0
+    randomSeed = None
+    if MAX_SEQUENCE_PER_SPECIES > 0 and randomSeed is None:
+      randomSeed = int(time.time())
+    if MAX_SEQUENCE_PER_SPECIES > 0:
+      print("random seed for species sequence selection :" , randomSeed)
+
+    np.random.seed(randomSeed)
+
+    FASTA_ID_SEPARATOR= "|"
+    SPECIES_NAME_INDEX=1
+    correspondence_file = ""
+
+    # reading input files
+
+      
+    speciesIDs = defaultdict(list) # store ids of sequences, organized by species
+    sequences = dict() # keys : fastaID , value : sequence
+    speciesOrder = []
+    seqLen = 0
+
+    ## reading data
+
+    sid2sp = {}
+    if len(correspondence_file) > 0 : ## we use the correspondence file instead of the Nth field of the fasta description line
+      sid2sp = readSequenceSpeciesCorrespondenceFile( correspondence_file , sep = ';' )
+
+
+    IN = open(inFile, 'r')
+    for k,s in iterFasta(IN):
+      sp=''
+      if len(correspondence_file) > 0 : ## we use the correspondence file instead of the Nth field of the fasta description line
+        sid = k.partition(FASTA_ID_SEPARATOR)[0]
+
+        if not sid in sid2sp :
+          print("Error : sequence {} is absent from the correspondence file {}".format( sid , correspondence_file ))
+          exit(1)
+        sp = sid2sp[sid]
+      else:
+        sp = getSequenceSpecies(k, FASTA_ID_SEPARATOR , SPECIES_NAME_INDEX )
+
+      speciesIDs[ sp ].append( k )
+      sequences[k] = s
+      seqLen = len(s)
+
+    IN.close()
+
+    speciesOrder = [sp for sp in speciesIDs.keys()] # keeping the order of species somewhere
+
+
+    ### reporting
+    js.document.getElementById("data_info").innerHTML = """
+    Read  {} sequences <br/>
+    among {} species : 
+    """.format( len(sequences) , len(speciesOrder) )
+    js.document.getElementById("data_info").innerHTML += ', '.join(speciesOrder[:4]) + ", ..." * (len(speciesOrder)>4) + "<br/>"
+    
+
+    print("reading OK")
+    reading_OK = True
+  except:
+    js.document.getElementById("data_info").innerHTML = "An error occured during the reading of the alignment. Please check the alignment format."
+
+        `);
+        
+        var reading_OK = pyodide.globals.get('reading_OK');//.toJs();
+        if (reading_OK) {
+            // adding a button to launch the structure matrix computations
+            var element = document.createElement("button");
+            //Assign different attributes to the element. 
+            element.value = ""; 
+            element.name = 'main_script';
+            element.onclick = function(){main()};
+            element.innerHTML = "Run pyKlee";
+
+            document.getElementById("data_info").appendChild(element);
+
+        }
+      }
+
+
+      async function main() {
+        let pyodide = await pyodideReadyPromise;
+
+        // setting up computations
+        pyodide.runPython(`
+
+
+print("Starting pyKlee computations")
+t1 = time.time()
+## replacing unknown nucleotides (N) by either the modal value in that species at that position (provided there is 1 clear modal value which is neither - nor N)
+for sp,ids in speciesIDs.items():
+
+  i = 0
+  while i < seqLen :
+    characterVector = []
+    hasN=[]
+    for ID in ids:
+      if sequences[ID][i] == 'N' :
+        hasN.append( ID ) # refer4encing sequences with a N
+      characterVector.append(sequences[ID][i])
+    if len(hasN) > 0 :
+      replaceNcharacter = getModalValueIncludingSpecialRules(characterVector) # used to find the most frequent character which will replace the N characters in sequences
+      for ID in hasN: # replacing the N character
+        sequences[ID] = sequences[ID][:i] + replaceNcharacter + sequences[ID][i+1:]
+        
+    i+=1 
+
+## transforming nucleotide sequences into numeric vector and grouping them into species-level matrices
+speciesMatrices = {}
+
+for sp,ids in speciesIDs.items():
+  
+  #limiting number of sequences per species
+  nbSeq = len(ids)
+  if MAX_SEQUENCE_PER_SPECIES > 0 :
+
+    np.random.seed( randomSeed )
+    if nbSeq > MAX_SEQUENCE_PER_SPECIES :
+      ids = np.random.choice(ids , MAX_SEQUENCE_PER_SPECIES , replace=False)
+
+      nbSeq = MAX_SEQUENCE_PER_SPECIES
+
+
+  #if nbSeq != MAX_SEQUENCE_PER_SPECIES:
+  # continue
+
+  m = np.zeros(( nbSeq , 4 * (seqLen) ))
+  
+  for i,ID in enumerate(ids):
+    m[i,] = sequenceToBarcode(sequences[ID])
+
+  speciesMatrices[sp] = m 
+
+print("detected",len(speciesMatrices),"species")
+print("sequence of ",seqLen,"residues")
+t2 = time.time()
+print(f"time for preparing reading and matrices: {t2-t1:.1f} s")
+
+## computing indicator vectors and structure matrix
+structureMatrix = computeIndicatorVectors(speciesMatrices,speciesOrder)
+
+t3 = time.time()
+print(f"time computing structure matrix: {t3-t2:.1f} s")
+
+
+
+
+## plotting the structure matrix
+js.document.pyodideMplTarget.innerHTML=''; # reset the matplotlib target area
+
+import matplotlib
+import matplotlib.pyplot as plt
+matplotlib.use("module://matplotlib_pyodide.wasm_backend")
+from heatmap_from_structureMatrix import heatmap
+fsize = len(speciesOrder)/6
+fig, ax = plt.subplots(figsize=(fsize*(5/4), fsize ) ) 
+## adding 1/4th additional width to account for the scale
+
+labels = speciesOrder
+
+ANNOTATION_THRESHOLD=300
+if len(speciesOrder)>ANNOTATION_THRESHOLD:
+    labels = []
+
+colorMap = 'rainbow'
+
+im, cbar = heatmap( structureMatrix , labels, labels, ax=ax,
+               cmap=colorMap, cbarlabel="indicator vector correlation")
+
+
+
+fig.tight_layout()
+plt.show()
+        `);
+        // now we will create a button to dowload the structure matrix
+        
+        var element = document.createElement("button");
+        //Assign different attributes to the element. 
+        element.value = "structure_matrix_download"; 
+        element.name = 'structure_matrix_download';
+        element.onclick = function(){download_structure_matrix()};
+        element.innerHTML = "Download the structure matrix as a csv";
+
+        //Append the element in page 
+        document.getElementById("data_info").appendChild(element);
+
+        return pyodide;
+      }
+
+    async function download_structure_matrix() {
+      let pyodide = await pyodideReadyPromise;
+
+    pyodide.runPython(`
+from js import Blob, document, URL
+
+# txt is the data to write to a file
+txt = ',' + ','.join( speciesOrder ) + '\\n'
+for i,s in enumerate(speciesOrder):
+  txt += s + ',' + ','.join( [str(x) for x in structureMatrix[i,:]] ) + '\\n'
+
+tag = document.createElement('a')
+blob = Blob.new([txt], {type: "text/plain"})
+tag.href = URL.createObjectURL(blob)
+tag.download = 'structure_matrix.csv'
+tag.click()
+    `)
+
+  }
+
+
+
+
+    </script>
+  </body>
+</html>
+
